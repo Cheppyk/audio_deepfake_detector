@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 import os
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 from pathlib import Path
 from datetime import datetime
@@ -170,7 +168,7 @@ def main():
         model.eval()
 
         with torch.no_grad():
-            for i, vdata in enumerate(val_loader):
+            for i, vdata in enumerate(test_loader):
                 vinputs, vlabels = vdata
                 vinputs, vlabels = vinputs.to(device), vlabels.to(device)
                 voutputs = model(vinputs)
