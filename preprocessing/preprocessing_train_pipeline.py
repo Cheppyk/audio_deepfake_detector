@@ -3,25 +3,21 @@
 import os
 os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
-import scipy.signal as signal
-import numpy as np
-import scipy.io.wavfile as wav
-import sounddevice as sd
+
 from pathlib import Path
+from datetime import datetime
+
 import pandas
-from torch.utils.data import Dataset, DataLoader
+import soundfile as sf
+
 import torch
 import torch.nn as nn
-from transformers import Wav2Vec2Model, HubertModel
 import torch.optim as optim
-import torchaudio
-import gc
-import torchaudio
-import soundfile as sf
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset
-from datetime import datetime
+from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
+
+from transformers import Wav2Vec2Model, HubertModel
+
 #c:/Users/egorv/Desktop/BProj
 
 
@@ -80,7 +76,6 @@ class ASVSpoofDataset(Dataset):
 
 
 
-import transformers
 class EnsembleModel(nn.Module):
     def __init__(self, num_classes=2):
         super().__init__()
@@ -137,23 +132,16 @@ def main():
     DATA_DIR = PROJECT_ROOT / "code" / "experiments" / "data" / "ASVSpoof2019"
 
     train_flac_dir = (DATA_DIR/ "LA" / "ASVSpoof2019_LA_train" / "flac")
-    labels_file = DATA_DIR / "LA" / "ASVspoof2019_LA_cm_protocols" / "ASVspoof2019.LA.cm.train.trn.txt"
+    train_labels_file = DATA_DIR / "LA" / "ASVspoof2019_LA_cm_protocols" / "ASVspoof2019.LA.cm.train.trn.txt"
 
-    flac_dataset = ASVSpoofDataset(train_flac_dir, labels_file)
+    test_flac_dir = (DATA_DIR/ "LA" / "ASVSpoof2019_LA_eval" / "flac")
+    test_labels_file = (DATA_DIR / "LA" / "ASVspoof2019_LA_cm_protocols" / "ASVspoof2019.LA.cm.eval.trl.txt")
 
+    train_flac_dataset = ASVSpoofDataset(train_flac_dir, train_labels_file)
+    test_flac_dataset = ASVSpoofDataset(test_flac_dir, test_labels_file)
 
-    indices = list(range(len(flac_dataset)))
-
-    train_split, temp_split = train_test_split(indices, train_size=0.8, shuffle=True, random_state=10)
-    val_split, test_split = train_test_split(temp_split, train_size=0.5, random_state=10)
-
-    train_subset = Subset(flac_dataset, train_split)
-    val_subset = Subset(flac_dataset, val_split)
-    test_subset = Subset(flac_dataset, test_split)
-
-    train_loader = DataLoader(train_subset, batch_size=16, num_workers=8, persistent_workers=True, shuffle=True, pin_memory=True)
-    val_loader = DataLoader(val_subset, batch_size=16, num_workers=8, shuffle=False)
-    test_loader = DataLoader(test_subset, batch_size=16, num_workers=8, shuffle=False)
+    train_loader = DataLoader(train_flac_dataset, batch_size=16, num_workers=8, persistent_workers=True, pin_memory=True)
+    test_loader = DataLoader(test_flac_dataset, batch_size=16, num_workers=8, shuffle=False)
 
     # persistent_workers=True
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
