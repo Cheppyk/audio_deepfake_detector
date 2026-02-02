@@ -1,5 +1,3 @@
-from pathlib import Path
-
 # ASVSpoof2019 LA Audio Spoofing Detection (Wav2Vec2 + HuBERT Ensemble)
 
 ## Overview
